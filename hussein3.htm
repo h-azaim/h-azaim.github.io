@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>إعملي اوردر فطار</title>
+    <title>مرحبا بك في خدمة فطّرني ع السريع</title>
     <style>
         body {
             font-family: Arial, sans-serif;
@@ -74,12 +74,33 @@
         }
         .client-info p {
             margin: 5px 0;
+            padding-right: 30px; /* لإضافة المسافات الفارغة */
+        }
+        @media print {
+            body * {
+                visibility: hidden;
+            }
+            .invoice, .invoice * {
+                visibility: visible;
+            }
+            .invoice {
+                position: absolute;
+                left: 0;
+                top: 0;
+                width: 100%;
+                padding: 20px; /* إضافة padding لضمان وجود هوامش */
+                box-sizing: border-box; /* لضمان أن padding لا يؤثر على العرض الكلي */
+            }
+        }
+        /* إضافة لون أزرق لجملة الترحيب */
+        .welcome-message {
+            color: blue;
         }
     </style>
 </head>
 <body>
     <div class="container">
-        <h1>إعملي اوردر فطار</h1>
+        <h1 class="welcome-message">مرحبا بك في خدمة فطّرني ع السريع</h1>
         <div class="item">
             <label for="name">الاسم:</label>
             <input type="text" id="name">
@@ -117,6 +138,9 @@
         <div class="item">
             <button onclick="generateInvoice()">إنهاء الطلب</button>
         </div>
+        <div class="item">
+            <button onclick="printInvoice()">طباعة الفاتورة</button>
+        </div>
         <div class="invoice" id="invoice" style="display: none;">
             <h2>فاتورة</h2>
             <div class="client-info" id="clientInfo"></div>
@@ -133,6 +157,11 @@
                 <tbody id="invoiceDetails"></tbody>
                 <tfoot>
                     <tr>
+                        <td colspan="2"><strong>إجمالي الكميات</strong></td>
+                        <td id="totalQuantity"><strong>0</strong></td>
+                        <td></td>
+                    </tr>
+                    <tr>
                         <td colspan="3"><strong>السعر الإجمالي</strong></td>
                         <td id="totalPrice"><strong>0 جنيه</strong></td>
                     </tr>
@@ -148,9 +177,16 @@
             const foodSelect = document.getElementById('food');
             const food = foodSelect.options[foodSelect.selectedIndex].value;
             const price = foodSelect.options[foodSelect.selectedIndex].getAttribute('data-price');
-            const quantity = document.getElementById('quantity').value;
+            const quantity = parseInt(document.getElementById('quantity').value);
 
-            orderItems.push({ food, quantity, price });
+            const existingItem = orderItems.find(item => item.food === food);
+
+            if (existingItem) {
+                existingItem.quantity += quantity;
+            } else {
+                orderItems.push({ food, quantity, price });
+            }
+
             alert(`تم إضافة ${food} بكمية ${quantity}`);
         }
 
@@ -159,6 +195,7 @@
             const address = document.getElementById('address').value;
             const phone = document.getElementById('phone').value;
             let total = 0;
+            let totalQuantity = 0;
             let clientInfo = `
                 <p><strong>الاسم:</strong> ${name}</p>
                 <p><strong>رقم التليفون:</strong> ${phone}</p>
@@ -171,6 +208,7 @@
             orderItems.forEach(item => {
                 const itemTotal = item.price * item.quantity;
                 total += itemTotal;
+                totalQuantity += item.quantity;
                 invoiceDetails += `
                     <tr>
                         <td>${item.food}</td>
@@ -183,8 +221,14 @@
 
             document.getElementById('invoiceDetails').innerHTML = invoiceDetails;
             document.getElementById('totalPrice').innerHTML = `<strong>${total} جنيه</strong>`;
+            document.getElementById('totalQuantity').innerHTML = `<strong>${totalQuantity}</strong>`;
             document.getElementById('invoice').style.display = 'block';
+        }
+
+        function printInvoice() {
+            window.print();
         }
     </script>
 </body>
 </html>
+
